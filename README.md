@@ -1,83 +1,85 @@
-# Recarregar Extensões
+# Refresh All Extensions
 
 [![CI](https://github.com/puppe1990/refresh-all/actions/workflows/ci.yml/badge.svg)](https://github.com/puppe1990/refresh-all/actions/workflows/ci.yml)
 
-Extensão de Chrome (Manifest V3) com um botão no popup para **recarregar extensões sem passar por `chrome://extensions`**: marque as que quiser ou recarregue todas de uma vez.
+A Chrome extension (Manifest V3) with a popup button to **reload extensions without going through `chrome://extensions`**: pick the ones you want or reload them all at once.
 
-Sem build: os arquivos são os que o Chrome carrega — nenhum bundler, nenhum passo de compilação.
+No build step: the files are exactly what Chrome loads — no bundler, no compilation.
 
-## Como usar
+> The extension is listed in Chrome as **Recarregar Extensões** and its popup UI is in Brazilian Portuguese.
 
-1. Abra `chrome://extensions`.
-2. Ligue o **Modo do desenvolvedor**.
-3. Clique em **Carregar sem compactação** e selecione esta pasta.
-4. Clique no ícone da extensão na barra de ferramentas para abrir o popup:
-   - **Só extensões dev (unpacked)** filtra a lista; vem ligado por padrão e a escolha é lembrada;
-   - **Selecionar todas** marca/desmarca a lista visível;
-   - **Recarregar selecionadas (n)** recarrega só o que estiver marcado;
-   - **Recarregar todas (n)** recarrega a lista visível inteira.
+## Usage
 
-Cada linha mostra o nome, a versão e um selo `dev` quando a extensão é unpacked. Ao final, um resumo indica o que deu certo e o motivo de eventuais falhas.
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode**.
+3. Click **Load unpacked** and select this folder.
+4. Click the extension icon in the toolbar to open the popup:
+   - **Só extensões dev (unpacked)** filters the list; it is on by default and your choice is remembered;
+   - **Selecionar todas** checks/unchecks the visible list;
+   - **Recarregar selecionadas (n)** reloads only the checked ones;
+   - **Recarregar todas (n)** reloads the whole visible list.
 
-A seleção e o filtro são lembrados: pode fechar o popup que as extensões marcadas (e o estado do filtro) continuam na próxima abertura (`chrome.storage.local`). Ids de extensões que não existem mais — ou que ficaram fora do filtro — são descartados ao montar a lista.
+Each row shows the name, the version and a `dev` badge when the extension is unpacked. When a run finishes, a summary tells what succeeded and why anything failed.
 
-As permissões `management` e `storage` geram o aviso "Gerenciar seus apps, extensões e temas" na instalação — `management` é o que permite listar e alternar extensões, `storage` guarda seleção e filtro. Se você atualizar os arquivos desta extensão, mudanças no `manifest.json` (como permissões) só entram em vigor depois de recarregá-la em `chrome://extensions` — os demais arquivos o popup lê direto do disco a cada abertura.
+Selection and filter are remembered: close the popup and the checked extensions (and the filter state) are still there on the next open (`chrome.storage.local`). Ids of extensions that no longer exist — or that are hidden by the filter — are dropped when the list is built.
 
-## Como funciona
+The `management` and `storage` permissions trigger the "Manage your apps, extensions, and themes" warning at install time — `management` is what allows listing and toggling extensions, `storage` keeps selection and filter. If you update this extension's files, changes to `manifest.json` (like permissions) only take effect after reloading it at `chrome://extensions` — the other files are read straight from disk every time the popup opens.
 
-O Chrome não expõe um `chrome.management.reload()`. O que existe é `chrome.management.setEnabled()`, e o código do Chromium trata como **no-op quando o estado pedido já é o atual** (`extensions/browser/api/management/management_api.cc`). Então o reload é:
+## How it works
+
+Chrome does not expose a `chrome.management.reload()`. What exists is `chrome.management.setEnabled()`, and the Chromium code treats it as a **no-op when the requested state is the current one** (`extensions/browser/api/management/management_api.cc`). So the reload is:
 
 ```js
-await chrome.management.setEnabled(id, false); // desliga
-await chrome.management.setEnabled(id, true); // liga de novo
+await chrome.management.setEnabled(id, false); // turn off
+await chrome.management.setEnabled(id, true); // turn back on
 ```
 
-que força o unload/load completo da extensão. Desabilitar não exige gesto do usuário nem diálogo de confirmação; o prompt nativo só aparece no caso raro de habilitação com "permissions increase" (e aí a falha é reportada na linha).
+which forces a full unload/load of the extension. Disabling requires no user gesture and shows no confirmation dialog; the native prompt only appears in the rare "permissions increase" enable case (and then the failure is reported on the row).
 
-Limitações que vêm desse mecanismo:
+Limitations that come from this mechanism:
 
-- **Mudanças no `manifest.json`** exigem reload manual pela página `chrome://extensions`.
-- **Extensões desabilitadas, temas e apps** não entram na lista (só faz sentido recarregar o que está habilitado); extensões presas por política (`mayDisable === false`) são ignoradas. Com o filtro dev ligado, só entram as unpacked (`installType === 'development'`).
-- A **própria extensão** não pode se recarregar (o Chrome bloqueia auto-desabilitar), então ela é excluída da lista.
-- Content scripts não são reinjetados em abas já abertas; recarregue a aba da página em desenvolvimento se precisar.
+- **`manifest.json` changes** require a manual reload from the `chrome://extensions` page.
+- **Disabled extensions, themes and apps** don't make it into the list (only enabled ones are worth reloading); extensions locked by policy (`mayDisable === false`) are skipped. With the dev filter on, only unpacked ones (`installType === 'development'`) are included.
+- The **extension itself** cannot reload itself (Chrome blocks self-disable), so it is excluded from the list.
+- Content scripts are not re-injected into already-open tabs; refresh the page you are developing if you need that.
 
-## Estrutura
+## Structure
 
 ```
-manifest.json   declaração MV3 + permissões management/storage + action.default_popup
-popup.html      marcado do popup
-popup.css       estilos (claro/escuro)
-popup.js        cola fina de DOM: monta as linhas, filtro e persistência de seleção/filtro
-lib/selection.js       modelo de seleção (Set), resumo (nenhuma/parcial/todas) e restauração da seleção salva
-lib/extension-list.js  filtra (dev/all) e ordena o resultado de chrome.management.getAll()
-lib/reload.js          sequência disable→enable, com progresso e erros por item
-lib/storage.js         escrita best-effort no storage (nunca lança, mesmo sem a permissão)
-test/                  testes unitários dos módulos de lib/
+manifest.json   MV3 declaration + management/storage permissions + action.default_popup
+popup.html      popup markup
+popup.css       styles (light/dark)
+popup.js        thin DOM glue: renders rows, filter and selection/filter persistence
+lib/selection.js       selection model (Set), summary (none/partial/all) and restore of the saved selection
+lib/extension-list.js  filters (dev/all) and sorts the chrome.management.getAll() result
+lib/reload.js          disable→enable sequence, with per-item progress and errors
+lib/storage.js         best-effort storage write (never throws, even without the permission)
+test/                  unit tests for the lib/ modules
 ```
 
-Os módulos de `lib/` não conhecem DOM nem o objeto `chrome`: recebem a API por parâmetro, então rodam iguais no popup e no Node.
+The `lib/` modules know neither the DOM nor the `chrome` object: they take the API as a parameter, so they run the same in the popup and in Node.
 
-## Testes
+## Tests
 
 ```sh
-npm test        # ou: node --test
+npm test        # or: node --test
 ```
 
-Escritos antes da implementação (TDD): a suíte cobre seleção (incluindo restauração com poda de ids que não existem mais), montagem da lista (exclusões, filtro dev-only e ordenação com acento via `Intl.Collator pt-BR`) e a orquestração do reload (ordem das chamadas, progresso, falha que não interrompe o restante). Usa só o test runner do Node, sem framework de teste.
+Written before the implementation (TDD): the suite covers selection (including restore with pruning of ids that no longer exist), list building (exclusions, dev-only filter and accent-aware sorting via `Intl.Collator pt-BR`) and reload orchestration (call order, progress, a failure that doesn't stop the rest). It uses only Node's test runner, no test framework.
 
-A camada de DOM (`popup.js`) é fina de propósito e foi verificada carregando a extensão de verdade em um Chrome for Testing (headless), abrindo o popup, clicando em "Recarregar selecionadas" e "Recarregar todas" e reabrindo o popup para conferir seleção e filtro restaurados.
+The DOM layer (`popup.js`) is intentionally thin and was verified by loading the extension for real in a Chrome for Testing (headless), opening the popup, clicking "Recarregar selecionadas" and "Recarregar todas", and reopening the popup to check that selection and filter were restored.
 
-## Scripts e pré-commit
+## Scripts and pre-commit
 
 ```sh
-npm install          # devDependencies + ativa o hook (core.hooksPath=.githooks via prepare)
+npm install          # devDependencies + activates the hook (core.hooksPath=.githooks via prepare)
 npm test             # node --test
 npm run lint         # ESLint (flat config)
-npm run lint:fix     # ESLint com --fix
+npm run lint:fix     # ESLint with --fix
 npm run format       # Prettier --write
 npm run format:check # Prettier --check
 ```
 
-O hook `.githooks/pre-commit` roda **lint + prettier --check + testes** antes de cada commit — commit com lint quebrado, formatação fora do padrão ou teste vermelho é barrado. O `npm install` configura o `core.hooksPath` automaticamente (script `prepare`); para ativar na mão: `git config core.hooksPath .githooks`.
+The `.githooks/pre-commit` hook runs **lint + prettier --check + tests** before every commit — a commit with broken lint, off-standard formatting or a red test is blocked. `npm install` sets `core.hooksPath` automatically (the `prepare` script); to enable it by hand: `git config core.hooksPath .githooks`.
 
-O CI (`.github/workflows/ci.yml`) roda exatamente os mesmos três passos em push para `main` e em pull requests.
+CI (`.github/workflows/ci.yml`) runs exactly the same three steps on pushes to `main` and on pull requests.
