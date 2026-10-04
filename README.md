@@ -17,7 +17,8 @@ No build step: the files are exactly what Chrome loads — no bundler, no compil
    - **Só extensões dev (unpacked)** filters the list; it is on by default and your choice is remembered;
    - **Selecionar todas** checks/unchecks the visible list;
    - **Recarregar selecionadas (n)** reloads only the checked ones;
-   - **Recarregar todas (n)** reloads the whole visible list.
+   - **Recarregar todas (n)** reloads the whole visible list;
+   - clicking an extension's **name** opens its page in `chrome://extensions` (Chrome's own manager).
 
 Each row shows the name, the version and a `dev` badge when the extension is unpacked. When a run finishes, a summary tells what succeeded and why anything failed.
 

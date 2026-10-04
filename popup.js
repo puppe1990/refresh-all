@@ -1,4 +1,5 @@
 import { buildReloadList } from './lib/extension-list.js';
+import { openManagePage } from './lib/manage.js';
 import { reloadAll } from './lib/reload.js';
 import {
   collectSelected,
@@ -48,7 +49,6 @@ function createRow(extension) {
   const item = document.createElement('li');
   item.className = 'extension';
 
-  const label = document.createElement('label');
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.addEventListener('change', () => {
@@ -57,11 +57,16 @@ function createRow(extension) {
     persistSelection();
   });
 
-  const name = document.createElement('span');
+  const name = document.createElement('button');
+  name.type = 'button';
   name.className = 'name';
   name.textContent = extension.name;
-  name.title = extension.name;
-  label.append(checkbox, name);
+  name.title = 'Abrir em chrome://extensions';
+  name.addEventListener('click', () => {
+    openManagePage(chrome.tabs, extension.id).catch(() => {
+      showStatus('Não foi possível abrir chrome://extensions.');
+    });
+  });
 
   const meta = document.createElement('span');
   meta.className = 'meta';
@@ -78,7 +83,7 @@ function createRow(extension) {
   const state = document.createElement('span');
   state.className = 'state';
 
-  item.append(label, meta, state);
+  item.append(checkbox, name, meta, state);
   listElement.append(item);
 
   rows.set(extension.id, { checkbox, state });

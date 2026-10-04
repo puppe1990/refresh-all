@@ -47,8 +47,7 @@ body {
 }
 
 .select-all,
-.filters label,
-.extension label {
+.filters label {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -87,14 +86,23 @@ body {
   background: var(--hover);
 }
 
-.extension label {
+.extension .name {
   flex: 1;
-}
-
-.name {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.extension .name:hover {
+  text-decoration: underline;
 }
 
 .extension .meta {
