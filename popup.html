@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Recarregar Extensões</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <label class="select-all">
+        <input type="checkbox" id="select-all" />
+        <span>Selecionar todas</span>
+      </label>
+      <span class="count" id="count"></span>
+    </header>
+
+    <div class="filters">
+      <label>
+        <input type="checkbox" id="filter-dev" checked />
+        <span>Só extensões dev (unpacked)</span>
+      </label>
+    </div>
+
+    <ul class="extension-list" id="extension-list"></ul>
+    <p class="empty" id="empty" hidden>Nenhuma extensão recarregável encontrada.</p>
+
+    <footer class="actions">
+      <button type="button" id="reload-selected">Recarregar selecionadas</button>
+      <button type="button" id="reload-all">Recarregar todas</button>
+    </footer>
+
+    <p class="status" id="status" role="status" hidden></p>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

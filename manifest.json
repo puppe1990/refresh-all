@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Recarregar Extensões",
+  "version": "1.0.0",
+  "description": "Recarrega uma extensão, uma seleção ou todas de uma vez, direto do popup e sem abrir chrome://extensions.",
+  "minimum_chrome_version": "88",
+  "permissions": ["management", "storage"],
+  "action": {
+    "default_title": "Recarregar extensões",
+    "default_popup": "popup.html"
+  }
+}
