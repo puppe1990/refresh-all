@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+echo "pre-commit: lint"
+npm run --silent lint
+
+echo "pre-commit: prettier --check"
+npm run --silent format:check
+
+echo "pre-commit: tests"
+npm run --silent test

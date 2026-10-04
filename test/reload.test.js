@@ -31,10 +31,7 @@ test('reloadExtension desabilita e reabilita, nessa ordem', async () => {
 test('reloadExtension propaga erro de setEnabled', async () => {
   const management = createManagement({ failures: ['abc:true'] });
 
-  await assert.rejects(
-    () => reloadExtension(management, 'abc'),
-    /falha em abc:true/,
-  );
+  await assert.rejects(() => reloadExtension(management, 'abc'), /falha em abc:true/);
 });
 
 test('reloadAll recarrega na ordem e reporta progresso de cada item', async () => {

@@ -1,5 +1,7 @@
 # Recarregar Extensões
 
+[![CI](https://github.com/puppe1990/refresh-all/actions/workflows/ci.yml/badge.svg)](https://github.com/puppe1990/refresh-all/actions/workflows/ci.yml)
+
 Extensão de Chrome (Manifest V3) com um botão no popup para **recarregar extensões sem passar por `chrome://extensions`**: marque as que quiser ou recarregue todas de uma vez.
 
 Sem build: os arquivos são os que o Chrome carrega — nenhum bundler, nenhum passo de compilação.
@@ -27,7 +29,7 @@ O Chrome não expõe um `chrome.management.reload()`. O que existe é `chrome.ma
 
 ```js
 await chrome.management.setEnabled(id, false); // desliga
-await chrome.management.setEnabled(id, true);  // liga de novo
+await chrome.management.setEnabled(id, true); // liga de novo
 ```
 
 que força o unload/load completo da extensão. Desabilitar não exige gesto do usuário nem diálogo de confirmação; o prompt nativo só aparece no caso raro de habilitação com "permissions increase" (e aí a falha é reportada na linha).
@@ -61,6 +63,21 @@ Os módulos de `lib/` não conhecem DOM nem o objeto `chrome`: recebem a API por
 npm test        # ou: node --test
 ```
 
-Escritos antes da implementação (TDD): a suíte cobre seleção (incluindo restauração com poda de ids que não existem mais), montagem da lista (exclusões, filtro dev-only e ordenação com acento via `Intl.Collator pt-BR`) e a orquestração do reload (ordem das chamadas, progresso, falha que não interrompe o restante). Zero dependências — usa só o test runner do Node.
+Escritos antes da implementação (TDD): a suíte cobre seleção (incluindo restauração com poda de ids que não existem mais), montagem da lista (exclusões, filtro dev-only e ordenação com acento via `Intl.Collator pt-BR`) e a orquestração do reload (ordem das chamadas, progresso, falha que não interrompe o restante). Usa só o test runner do Node, sem framework de teste.
 
 A camada de DOM (`popup.js`) é fina de propósito e foi verificada carregando a extensão de verdade em um Chrome for Testing (headless), abrindo o popup, clicando em "Recarregar selecionadas" e "Recarregar todas" e reabrindo o popup para conferir seleção e filtro restaurados.
+
+## Scripts e pré-commit
+
+```sh
+npm install          # devDependencies + ativa o hook (core.hooksPath=.githooks via prepare)
+npm test             # node --test
+npm run lint         # ESLint (flat config)
+npm run lint:fix     # ESLint com --fix
+npm run format       # Prettier --write
+npm run format:check # Prettier --check
+```
+
+O hook `.githooks/pre-commit` roda **lint + prettier --check + testes** antes de cada commit — commit com lint quebrado, formatação fora do padrão ou teste vermelho é barrado. O `npm install` configura o `core.hooksPath` automaticamente (script `prepare`); para ativar na mão: `git config core.hooksPath .githooks`.
+
+O CI (`.github/workflows/ci.yml`) roda exatamente os mesmos três passos em push para `main` e em pull requests.

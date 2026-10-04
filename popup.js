@@ -97,8 +97,7 @@ function syncControls() {
   reloadAllButton.disabled = busy || summary.total === 0;
   reloadAllButton.textContent = `Recarregar todas (${summary.total})`;
 
-  countElement.textContent =
-    summary.total === 1 ? '1 extensão' : `${summary.total} extensões`;
+  countElement.textContent = summary.total === 1 ? '1 extensão' : `${summary.total} extensões`;
 
   for (const extension of extensions) {
     const row = rows.get(extension.id);
@@ -142,9 +141,7 @@ function summarizeResults(results) {
       : `${results.length} extensões recarregadas.`;
   }
 
-  const details = failures
-    .map((failure) => `${nameOf(failure.id)} (${failure.error})`)
-    .join(' • ');
+  const details = failures.map((failure) => `${nameOf(failure.id)} (${failure.error})`).join(' • ');
 
   return `${results.length - failures.length} de ${results.length} recarregadas. Falhas: ${details}`;
 }
@@ -240,7 +237,9 @@ async function init() {
   }
 
   if (!chrome.storage?.local) {
-    showStatus('Para lembrar a seleção, recarregue a extensão em chrome://extensions (permissão "storage" ausente).');
+    showStatus(
+      'Para lembrar a seleção, recarregue a extensão em chrome://extensions (permissão "storage" ausente).',
+    );
   }
 }
 

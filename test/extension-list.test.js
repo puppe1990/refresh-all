@@ -36,10 +36,9 @@ test('mantém apenas extensões habilitadas, desabilitáveis e do tipo extension
 });
 
 test('não inclui a própria extensão', () => {
-  const list = buildReloadList(
-    [extension({ id: 'eu' }), extension({ id: 'outra' })],
-    { selfId: 'eu' },
-  );
+  const list = buildReloadList([extension({ id: 'eu' }), extension({ id: 'outra' })], {
+    selfId: 'eu',
+  });
 
   assert.deepEqual(
     list.map((item) => item.id),
